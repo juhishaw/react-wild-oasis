@@ -1,0 +1,530 @@
+#### Components vs Instances vs Element
+Description piece of UI
+A comp. is a function that returns back React Elements
+Instances are created when we"use" Components
+React internally calls Tab()
+Has a lifecycle (born , live, die)
+
+JSX actually gets converted to multiple React.createElement function calls.
+Then as React calls this create element function, the result will be a react element
+React element gets converted to DOM element which are displayed in DOM
+
+**** NOTE *****
+If we call a component like this -- Tab (), the React doesnot see this as a component.
+
+### Class vs Functional component
+- Functional component are also called "Pure" as they respect props, i.e., they don't change the props value
+- Props work well with both class and functional components. Additional benefits of class components are that they have a 
+state and lifecycle. This is the reason they are called “stateful” components.
+- Functional components are plain JavaScript functions that accept props and return React elements, while class components are JavaScript classes
+ that extend React. A component that has a render method. Both state and lifecycle methods come from React. 
+ Component, hence available in only class components.
+- Functional components are JavaScript functions whereas Class components are classes that extend React.Component.
+- Hoisting works only for functional components
+
+
+### Rendering
+
+1. The Render Phase
+React calls component function and figures out how DOM should be updated
+It only happens internally, doesnot produce any visual change
+
+Two situations that trigger renders:
+    A. Initial render of application
+    B. State is updated in one or mpre component instances (re-render)
+
+The render process is triggered for the entore application
+Renders are not triggered immediately, but scheduled for when JS compiler has time
+
+React go through entire componet tree, take all the component instances that triggered a re-render and calls the component function
+and this creates a Virtual DOM
+
+Virtual DOM --> Tree of all react element tree
+
+
+Component Tree --> React Element Tree --> on re-render --> new react element tree
+If highest component is updated then all its child component are also updated.
+
+React reuses as much of existing DOM as possible bu using method called Reconcilliation which uses reconciller(heart of react)
+Reconciller === Fiber
+
+Fibre tree: not re-created on every re-render, it is mutable, works asynchronously.
+
+Component Tree --> React Element Tree  --> Virtual DOM --> Reconcilliation + Diffing --> Fibre tress --> List of DOM updates -->
+    Commit phase
+
+2. The Commit phase
+React actually writes to the DOM, updating, inserting, deleting elements.
+It is done by seperate lobrary called React DOM which is present in broswer not present in React
+It is synchronous. Fiber tree becomes current tree. 
+
+Flow:
+Updated DOM --> Updated UI
+
+### Diffing
+Comparing elements step-by-step for change
+    1. Two elements of different type will produce different trees
+    2. Element with a stable key prop stay the same across renders
+        
+If props change and not the entire component, then compoent state is amintained and only data is changed.
+
+### The key prop
+1. Tells if ceratin element is unique
+2. Helps to distinguish multiple instances
+3. When the key state same across renders, the element will be kept in DOM (even if the position in the tree change)
+4. Always use keys in Lists
+5. They are also used to manintain state
+
+
+### Render Logic
+1. Code that lives at the top level of component function
+2. Participates in describing how the compoent view looks like
+3. Executed every time the compoent renders
+
+Cases of re-render:
+    A. State change
+    B. Props change
+    C. Parent re-renders
+    D. Context changes
+
+Event handler functions
+1. Executed as a consequence of the event taht the handler is listening for
+2. Code that does CRUD operations
+
+Components must be pure when it comes to render logic, Render logic must not have side effects.
+In render logic:
+    a. Do not perform API calls
+    b. Do not start timers
+    c. Do not directly use DOM API
+    d. Do not mutate objects or variables outside function scope
+    e. Do not update state
+
+### Functional Programming Principles
+1. Side effect: dependency on or modification of any data outside the function scope. Like HTTP requests.
+    intecation of react component with outside world.
+2. Pure function: no side effects, does not change variables outside its scope
+
+### State Update Batching
+There is batching of multiple setState calls in event handlers.
+If there are multiple state changes function inside single event call, then the entire state is updated in one go.
+Multiple re-rendering for single event does not happen.
+
+//Component lifecycle
+
+Mount --> re-render(optional) --> unmount -->
+Mount/Initail render - Component instance is rendered for the first time
+
+1. ComponentDidMount() - Called after initial render
+    - If you want to do something only once use componentDidMount instead because it gets called just once per compoent life cycle
+    - does not take any parameters.
+    - should not return anything.
+
+2. ComponentDidUpdate() - componentDidUpdate(prevProps, prevState, snapshot?) 
+    - React will call it immediately after your component has been re-rendered with updated props or state.  
+    - This method is not called for the initial render.
+    - Common place to do network requests as long as you compare the current props to previous props 
+
+    Parameters 
+        A. prevProps: Props before the update. Compare prevProps to this.props to determine what changed.
+        B. prevState: State before the update. Compare prevState to this.state to determine what changed.
+        C. snapshot: If you implemented getSnapshotBeforeUpdate, snapshot will contain the value you returned from that method. 
+            Otherwise, it will be undefined.
+
+3. componentWillUnmount()
+    - React will call it before your component is removed 
+    - The logic inside componentWillUnmount should “mirror” the logic inside componentDidMount. 
+        For example: 
+            if componentDidMount sets up a subscription, componentWillUnmount should clean up that subscription.
+
+
+****** EXTRA *****
+
+A. getSnapshotBeforeUpdate()
+    - React will call it immediately before React updates the DOM. It enables your component to capture some information from the DOM 
+    (e.g. scroll position) before it is potentially changed. 
+    - Any value returned by this lifecycle method will be passed as a parameter to componentDidUpdate.
+    
+
+### useEffect Hook
+- A place where we can write side effects
+- Doensot return anything
+- Only runs on mount
+- Effect callbacks are synchronous
+
+Where to create side effect?
+- They cannot be in render logic
+- We can create sideEffect inside useEffect which can solve the purpose if we want to automatically use API like ngOnInit
+- Can be used inside event handlers
+- We need to make sure they are cleaned up properly so that there wont be memory leaks and performance issues
+
+Syntax
+  useEffect(() => {},[])
+  [] - dependecy array, without this react does not know when to run so it will run after every change
+  Every state variable and prop used inside the eddect MUST be included in this array.
+  Each time dependency change, the effect will be executed again
+  -Synchoronize Mechanism
+
+### Cleanup Function
+
+- Function that we can return from an effect (optional)
+- Runs on 2 ocassions:
+    1. Before the effect is executed again
+    2. After a component has unmounted
+- Necessary whenever the side effects keeps happening after the component has been re-renderd or unmounted
+
+
+### Hooks
+
+1. Special built-in functions in react, API's that expose some react internal functinalities.
+    A. Creating and accessing state form Fiber tree
+    B. Registering side effects in Fiber tree
+    C. Manual DOM selections
+2. Always start with keyword 'use', can have our own cutom hooks as well
+3. useReducer, useContext, useRef, useCallback, useMemo, useTransition, useDererredValue, etc.
+
+**** CUSTOM HOOKS *****
+- WHne we want to use for example useState and useEffect with same logic but in multiple components, we extract them 
+on custom hooks
+- When we want to share logic between two JavaScript functions, we extract it to a third function. 
+    Both components and Hooks are functions, so this works for them too!
+- Reusability — we can use the same hook again and again, without the need to write it twice.
+- Clean Code — extracting all the component logic into a hook will provide a cleaner codebase.
+- Maintainability — easier to maintain. if we need to change the logic of the hook, we only need to change it once.
+
+- callback?.(); --> in order to use a function
+
+    const {movies, isLoading, error} => useMovies(query, handloCloseMovie);
+    useMovies.JS
+    export function useMovies(query, callback) {
+        useEffect(() => {
+            //...
+        },[query, callback])
+        return {movies, isLoading, error} 
+    }
+
+    const [watched, setWatched] = useLocalStorgae([], 'watched')
+    useLocalStorage.js
+    export function useLocalStorgae(initialState, key) {
+        const [value, setValue] = useState(() => {
+            const storedValue = localStorage.getItem(key);
+            return storedValue ? storedValue : initialState
+        });
+
+        useEffect(() => {
+            localStorage.setItem(key, value)
+        }, [value, key]);
+
+    }
+
+    useKey.js
+    export function useKey(key, action) {
+        useEffect(() => {
+            //...
+        }, [])
+    }
+
+Rules ----
+
+A. Only call hooks at the top level:
+    1. DO NOT call hooks insie conditional, loops, nested functions or after an early return.
+    2. This is necessary to ensure that hooks are always called in the same order
+B. Only call hooks from React functions
+    1. Only call hooks from inside a functional component or a custom hook
+C. Don't call hooks conditionally based on props/state values
+D. Call hooks from within useEffect only if you absolutely need them to do something after rendering
+E. Never call hooks inside loops, conditions, or nested functions
+F. Avoid passing callbacks down into components unless its really needed
+G. If you want to execute code before your first render, put it outside of any function component
+H. You should never call setState() directly. Use dispatch instead!
+I. Pass all dependencies for useState(), useEffect(), useMemo(), and similar APIs through their corresponding arrays
+J. Pass all dependencies for useState(), useEffect(). It makes things easier to follow
+
+1. useState() *****
+- add a state variable to your component.
+- const [state, setState] = useState(initialState);
+- Call useState at the top level of your component to declare a state variable.
+- useState returns an array with exactly two values:
+    A. The current state. During the first render, it will match the initialState you have passed.
+    B. The set function that lets you update the state to a different value and trigger a re-render.
+
+    --- Props drilling ---
+
+    Prop drilling is a technique used in React to pass data from a parent component down to its child components via props. 
+    While it can be a necessary and effective way to manage application state, it can also become a problem when the component 
+    hierarchy becomes too deep or complex.
+
+- We can intialize useState with a callback function, it should be pure, i.e., it will not receive any input
+
+    const [watched, setWatched] = useState(() => {
+        cont storedValue = localStorage.getItem('watched')
+        return storedValue;
+    })
+
+- It will execute on first render only.
+
+2. useEffect() ******
+- useEffect is a React Hook that lets you synchronize a component with an external system.
+- useEffect(setup, dependencies?)
+- Parameters: 
+    A. setup: 
+    The function with your Effect’s logic. Your setup function may also optionally return a cleanup function. 
+    When your component is added to the DOM, React will run your setup function. After every re-render with changed dependencies, 
+    React will first run the cleanup function (if you provided it) with the old values, and then run your setup function 
+    with the new values. After your component is removed from the DOM, React will run your cleanup function.
+
+    B. optional dependencies:
+    The list of all reactive values referenced inside of the setup code. Reactive values include props, state, and all the variables 
+    and functions declared directly inside your component body.
+
+- useEffect returns undefined.
+
+3. useContext() ******
+- read and subscribe to context from your component.
+- const value = useContext(SomeContext)
+- Call useContext at the top level of your component to read and subscribe to context.
+import { useContext } from 'react';
+
+    function MyComponent() {
+    const theme = useContext(ThemeContext);
+    // ...
+    }
+
+This is applicable when using Context API introduced in React 16.3.0 to avoid props drilling. Here context hook can be used to interact with created context.
+
+    import React, { useContext } from 'react';
+    const TestContext = React.createContext();
+    function Display() {
+    const value = useContext(TestContext);
+    return <div>{value}, This value is from context.</div>;
+    }
+    function App() {
+    return (
+        <TestContext.Provider value={"Koala"}>
+            <Display />
+        </TestContext.Provider>
+    );
+    }
+
+Here provided Context is accessed by child functional component using useContext. Here Context object is passed for context hook, 
+and its value will be accessible in functional component regardless of depth from context Provider.
+
+- Parameters:
+    A. SomeContext: 
+    The context that you’ve previously created with createContext. The context itself does not hold the information, 
+    it only represents the kind of information you can provide or read from components.
+
+- Returns:
+    useContext returns the context value for the calling component. It is determined as the value passed to the closest 
+    SomeContext.Provider above the calling component in the tree.
+
+4. useRef() ******
+- Use to craete refernce, 
+- const ref = useRef(initialValue)
+  const intervalRef = useRef(0);
+  const inputRef = useRef(null);
+
+- initialValue: The value you want the ref object’s current property to be initially. 
+It can be a value of any type. This argument is ignored after the initial render.
+
+- useRef returns an object with a single property:  
+    current: Initially, it’s set to the initialValue you have passed. You can later set it to something else. 
+    If you pass the ref object to React as a ref attribute to a JSX node, React will set its current property.
+
+- Changing a ref does not trigger a re-render. This means refs are perfect for storing information that 
+    doesn’t affect the visual output of your component
+
+- Use case: 
+    A. Creating a variable that stays the same between renders
+    B. Selecting & stroing DOM elements
+
+
+function Search({ query, setQuery }) {
+  const inputEl = useRef(null);
+
+ useEffect(() => {
+    inputEl.current.focus()
+ }, [])
+
+  return (
+    <input
+      className="search"
+      type="text"
+      placeholder="Search movies..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
+    />
+  );
+}
+
+**** How to persist data b/w renders using ref ****
+const countRef = useRef(0);
+useEffect(() => {
+    if(userRating) {
+        countRef.current = countRef.current + 1;
+    }
+}, [userRating])
+
+5. useReducer() ******
+- uses reducer function which takes current state and an action
+- add a reducer to your component.
+
+    import { useReducer } from 'react';
+    function reducer(state, action) {
+    // ...
+    }
+    function MyComponent() {
+    const [state, dispatch] = useReducer(reducer, { age: 42 });
+    // ...
+    }
+- Parameters:
+    reducer: 
+        - The reducer function that specifies how the state gets updated. 
+        - It must be pure, should take the state and action as arguments, and should return the next State
+
+    initialArg:
+        - The value from which the initial state is calculated
+
+- useReducer returns an array with exactly two values:
+    A. The current state. During the first render
+    B. The dispatch function that lets you update the state to a different value and trigger a re-render.
+
+Dispatch function:
+The dispatch function returned by useReducer, lets you update the state to a different value 
+and trigger a re-render. You need to pass the action as the only argument to the dispatch function:
+
+- Ideal for complex state management.
+
+Flow:
+Updating stat in a component --> dispatch(action: {type: 'updateDay', payload: 23}) --> reducer(action: {type: 'updateDay', payload: 23}) -->
+current state --> return next state --> re-render
+
+
+***** useState vs useReducer
+useState --
+    - Idle for single, idependent pieces of state
+    - Logic to update state is directly in event handlers or effects, spread all over one/multiple 
+    component
+    - State is updated by calling setState()
+    - Imperative
+
+useRef --
+    - Idle for multiple related pieces of data and complex state
+    - One central place for all the logic
+    - State is updated buy dispatching an action to reducer
+    - Declarative state updates
+
+#### Vite APP ####
+- npm install eslint vite-plugin-eslint eslint-config-react-app --save-dev
+- viteconfig:
+import eslint from 'vite-plugin-eslint'
+ plugins: [react(), eslint()],
+- create .eslintrc.json
+{
+    "extends": "react-app"
+}
+
+
+#### ROUTING
+React Router DOM (RRD)
+npm install react-router-dom@5.2.0
+
+<BrowserRouter>
+    <Routes>
+        <Route path="login" element={<Login />} />
+        <Route path="app" element={<AppLayout />}>
+        //Children Route
+          <Route path="cities" element={<p>List of cities</p>} />
+          <Route path="countries" element={<p>List of countries</p>} />
+          <Route path="form" element={<p>Form</p>} />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+    </Routes>
+</BrowserRouter>
+
+for children route we use <Outlet />
+
+Programmatic navigation
+ const navigate = useNavigate()
+  onClick={() => {navigate("form")}}
+
+  //to go back to previous screen pass (-1)
+  onClick={(e) =>{
+          e.preventDefault();
+           navigate(-1)}}
+
+<Navigate to='cities' />
+<Route index element={<Navigate replace to="cities" />} />
+
+
+### Context API
+- System to pass data throughout the app without manually passing props down the there
+- Allow us to "broadcast" global state to the entire app    
+    A. Provider: gives all child components access to value
+    B. Value: data we want to make available
+    C. Consumers: all components that read/subscribe the context value
+
+useContext()
+createContext()
+
+
+### STATE MANAGEMENT
+
+Types of state:
+    1. State accessibility
+        Local --
+            - Need only by one or few components 
+            - Only accessible in component & child component
+        Global --
+            - Might be needed by many components
+            - Accessible to every component in the application
+    2. State Domain
+        Remote --
+            - All application data loaded from remote server (API)
+            - Usually asynchronously
+            - Needs re-fetching, updating
+        UI
+            - Theme, list, filters, etc. Almost everything
+            - Synchronous
+
+**** Where to place state? *****
+    Local comp: useState, useReducer, useRef
+    Parent comp: useState, useReducer, useRef
+    Context: Context API +  useState OR useReducer
+    3rd party lib: Redux, React Query, etc.
+    URL: React Router
+    Browser: Local Storgar, Session Storage, etc.
+
+
+#### Optimising technique
+
+    1. Prevent wasted renders
+        - memo
+        - useMemo
+        - useCallback
+        - passing elements as children or regular prop
+    2. Improve app speed/responsiveness
+        - useTransition
+        - useMemo
+        - useCallback
+    3. Reduce bundle size
+        - use fewer 3rd party packages
+        - code splitting and lazy loading
+
+### memo
+- Used to create component that will not re-render when its parent re-renders as long as the 
+props stay the same b/w renders
+- Only affect props! A memoized component will still re-render when its own state changes or when a 
+context that it's subscribed to changes
+- Only makes sense when the component is heavy, re-renders oftrn and does so with the same props
+
+### useMemo & use callback
+- Used to memoise values(useMemo) and fucntions(useCallback) b/w renders
+- Value passed to these hooks will be stored in memory('cache') and returned in subsequent re-renders, as long as dependencies
+stay the same
+- They have a dependecy array, whenever that changes the value is re-created.
+
+    Use case:
+    A. Prevents wasted render
+    B. Avoid expensive re-calculations on every re-render
+    C. Memoize values that are used in dependecy array of another hook
