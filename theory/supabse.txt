@@ -1,0 +1,10 @@
+- Service thatvallows developers to easily create a backend with postgress db.
+- Automatically created DB and API so we can easily request and receive data from server.
+- No backend development needed
+- Perfect to get up & running quickly
+- Easy user authentication and file storage
+
+https://supabase.com/
+
+f44*79cGQdXg2*z -- passowrd
+
