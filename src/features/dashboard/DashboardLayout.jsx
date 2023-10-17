@@ -1,4 +1,10 @@
+/* eslint-disable no-unused-vars */
 import styled from "styled-components";
+import { useRecentBookings } from "./useRecentBookings";
+import Spinner from "../../ui/Spinner";
+import { useRecentStays } from "./useRecentStays";
+import Stats from "./Stats";
+import { useCabins } from "../cabins/useCabins";
 
 const StyledDashboardLayout = styled.div`
   display: grid;
@@ -8,12 +14,27 @@ const StyledDashboardLayout = styled.div`
 `;
 
 function DashboardLayout() {
-  return <StyledDashboardLayout>
-    <div>Statistics</div>
-    <div>Today&apos;s activities</div>
-    <div>Chart stay durations</div>
-    <div>Chart Sales</div>
-  </StyledDashboardLayout>
+  const { bookings, isRecentBookingsLoading } = useRecentBookings();
+  const { stays, confirmedStays, numDays, isRecentStaysLoading } =
+    useRecentStays();
+  const { cabins, isLoading: isUseCabinsLoading } = useCabins();
+
+  if (isRecentBookingsLoading || isRecentStaysLoading || isUseCabinsLoading)
+    return <Spinner />;
+
+  return (
+    <StyledDashboardLayout>
+      <Stats
+        bookings={bookings}
+        confirmedStays={confirmedStays}
+        numDays={numDays}
+        cabinCount={cabins.length}
+      />
+      <div>Today&apos;s activities</div>
+      <div>Chart stay durations</div>
+      <div>Chart Sales</div>
+    </StyledDashboardLayout>
+  );
 }
 
 export default DashboardLayout;
